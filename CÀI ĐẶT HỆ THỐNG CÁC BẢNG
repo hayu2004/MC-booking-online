@@ -1,0 +1,322 @@
+# Bảng ACCOUNT: Thông tin các tài khoản trên hệ thống
+CREATE TABLE `account` (
+	`idAcc` INT(10) NOT NULL,
+	`email` VARCHAR(35) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`password` VARCHAR(35) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`name` VARCHAR(35) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`city` VARCHAR(35) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`zipcode` INT(10) NOT NULL DEFAULT '0',
+	`DOB` DATE NOT NULL,
+	PRIMARY KEY (`idAcc`) USING BTREE,
+	UNIQUE INDEX `idAcc` (`idAcc`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+# Bảng ADMIN
+CREATE TABLE `admin` (
+	`idAcc` INT(10) NOT NULL,
+	PRIMARY KEY (`idAcc`) USING BTREE,
+	UNIQUE INDEX `idAcc` (`idAcc`) USING BTREE,
+	CONSTRAINT `FK_admin_manager` FOREIGN KEY (`idAcc`) REFERENCES `manager` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+# Bảng BOOK
+CREATE TABLE `book` (
+	`idBook` INT(10) NOT NULL,
+	`idEvent` INT(10) NOT NULL,
+	`idSale` INT(10) NULL DEFAULT NULL,
+	`totalPrice` INT(10) NOT NULL,
+	`status` BIT(1) NOT NULL DEFAULT '0x00',
+	`create` DATETIME NOT NULL DEFAULT (sysdate()),
+	PRIMARY KEY (`idBook`) USING BTREE,
+	UNIQUE INDEX `idBook` (`idBook`) USING BTREE,
+	INDEX `FK_book_event` (`idEvent`) USING BTREE,
+	INDEX `Fk_book_sale` (`idSale`) USING BTREE,
+	CONSTRAINT `FK_book_event` FOREIGN KEY (`idEvent`) REFERENCES `event` (`idEvent`) ON UPDATE NO ACTION ON DELETE CASCADE,
+	CONSTRAINT `FK_book_sale` FOREIGN KEY (`idSale`) REFERENCES `sale` (`idAcc`) ON UPDATE CASCADE ON DELETE NO ACTION
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+# Bảng calendar
+CREATE TABLE `calendar` (
+	`idCal` INT(10) NOT NULL,
+	`idBook` INT(10) NULL DEFAULT NULL,
+	`timeStart` DATETIME NOT NULL,
+	`timeEnd` DATETIME NOT NULL,
+	`idMC` INT(10) NOT NULL,
+	PRIMARY KEY (`idCal`) USING BTREE,
+	UNIQUE INDEX `idCal` (`idCal`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+
+# Bảng chat
+CREATE TABLE `chat` (
+	`idChat` INT(10) NOT NULL,
+	`idMan` INT(10) NOT NULL,
+	`idCus` INT(10) NOT NULL,
+	`message` VARCHAR(200) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`time` DATETIME NOT NULL DEFAULT (sysdate()),
+	`isManSent` BIT(1) NOT NULL,
+	PRIMARY KEY (`idChat`) USING BTREE,
+	UNIQUE INDEX `idChat` (`idChat`) USING BTREE,
+	INDEX `FK_manager` (`idMan`) USING BTREE,
+	INDEX `FK_customer` (`idCus`) USING BTREE,
+	CONSTRAINT `FK_customer` FOREIGN KEY (`idCus`) REFERENCES `customer` (`idAcc`) ON UPDATE CASCADE ON DELETE NO ACTION,
+	CONSTRAINT `FK_manager` FOREIGN KEY (`idMan`) REFERENCES `manager` (`idAcc`) ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+
+
+# Bảng customer
+CREATE TABLE `customer` (
+	`idAcc` INT(10) NOT NULL,
+	`idOffer` INT(10) NOT NULL DEFAULT '0',
+	`countOfBook` INT(10) NOT NULL,
+	`paymentMethod` VARCHAR(40) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idAcc`) USING BTREE,
+	UNIQUE INDEX `idAcc` (`idAcc`) USING BTREE,
+	INDEX `FK_customer_offer` (`idOffer`) USING BTREE,
+	CONSTRAINT `FK_customer_account` FOREIGN KEY (`idAcc`) REFERENCES `account` (`idAcc`) ON UPDATE CASCADE ON DELETE NO ACTION,
+	CONSTRAINT `FK_customer_offer` FOREIGN KEY (`idOffer`) REFERENCES `offer` (`idOffer`) ON UPDATE CASCADE ON DELETE NO ACTION
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+
+# Bảng event
+CREATE TABLE `event` (
+	`idEvent` INT(10) NOT NULL,
+	`idCus` INT(10) NOT NULL,
+	`idScale` INT(10) NOT NULL,
+	`idType` INT(10) NOT NULL,
+	`name` VARCHAR(200) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`place` VARCHAR(200) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`timeStart` DATETIME NOT NULL,
+	`timeEnd` DATETIME NOT NULL,
+	PRIMARY KEY (`idEvent`) USING BTREE,
+	UNIQUE INDEX `idEvent` (`idEvent`) USING BTREE,
+	INDEX `FK_event_customer` (`idCus`) USING BTREE,
+	INDEX `FK_event_type_event` (`idType`) USING BTREE,
+	INDEX `FK_event_sale_event` (`idScale`) USING BTREE,
+	CONSTRAINT `FK_event_customer` FOREIGN KEY (`idCus`) REFERENCES `customer` (`idAcc`) ON UPDATE CASCADE ON DELETE NO ACTION,
+	CONSTRAINT `FK_event_sale_event` FOREIGN KEY (`idScale`) REFERENCES `sale_event` (`idScale`) ON UPDATE CASCADE ON DELETE NO ACTION,
+	CONSTRAINT `FK_event_type_event` FOREIGN KEY (`idType`) REFERENCES `type_event` (`idType`) ON UPDATE CASCADE ON DELETE NO ACTION
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+#Bảng images
+CREATE TABLE `images` (
+	`idMC` INT(10) NOT NULL,
+	`image` VARCHAR(600) NOT NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idMC`, `image`) USING BTREE,
+	CONSTRAINT `FK_images_mc` FOREIGN KEY (`idMC`) REFERENCES `mc` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+language_mc
+CREATE TABLE `language_mc` (
+	`idLang` INT(10) NOT NULL,
+	`Lang` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idLang`) USING BTREE,
+	UNIQUE INDEX `idLang` (`idLang`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+#Bảng lang_of_mc
+CREATE TABLE `lang_of_mc` (
+	`idLang` INT(10) NOT NULL,
+	`idMC` INT(10) NOT NULL,
+	PRIMARY KEY (`idLang`, `idMC`) USING BTREE,
+	INDEX `Fk_mc` (`idMC`) USING BTREE,
+	CONSTRAINT `FK_language_mc` FOREIGN KEY (`idLang`) REFERENCES `language_mc` (`idLang`) ON UPDATE NO ACTION ON DELETE CASCADE,
+	CONSTRAINT `FK_mc` FOREIGN KEY (`idMC`) REFERENCES `mc` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+#Bảng level_mc
+CREATE TABLE `level_mc` (
+	`idLevel` INT(10) NOT NULL,
+	`level` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idLevel`) USING BTREE,
+	UNIQUE INDEX `idLevel` (`idLevel`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+#Bảng manager
+CREATE TABLE `manager` (
+	`idAcc` INT(10) NOT NULL,
+	PRIMARY KEY (`idAcc`) USING BTREE,
+	UNIQUE INDEX `idAcc` (`idAcc`) USING BTREE,
+	CONSTRAINT `FK_manager_account` FOREIGN KEY (`idAcc`) REFERENCES `account` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+# Bảng MC
+CREATE TABLE `mc` (
+	`idAcc` INT(10) NOT NULL,
+	`idLevel` INT(10) NOT NULL,
+	`video` VARCHAR(200) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+	`experience` INT(10) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`idAcc`) USING BTREE,
+	UNIQUE INDEX `idAcc` (`idAcc`) USING BTREE,
+	INDEX `FK_mc_level_mc` (`idLevel`) USING BTREE,
+	CONSTRAINT `FK_mc_account` FOREIGN KEY (`idAcc`) REFERENCES `account` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE,
+	CONSTRAINT `FK_mc_level_mc` FOREIGN KEY (`idLevel`) REFERENCES `level_mc` (`idLevel`) ON UPDATE CASCADE ON DELETE NO ACTION
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+# Bảng offer
+CREATE TABLE `offer` (
+	`idOffer` INT(10) NOT NULL,
+	`discount` INT(10) NOT NULL,
+	`countOfBook` INT(10) NOT NULL,
+	PRIMARY KEY (`idOffer`) USING BTREE,
+	UNIQUE INDEX `idOffer` (`idOffer`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+#Bảng rate
+CREATE TABLE `rate` (
+	`idRate` INT(10) NOT NULL,
+	`idCus` INT(10) NOT NULL,
+	`idMC` INT(10) NOT NULL,
+	`rate` INT(10) NOT NULL DEFAULT '0',
+	`comment` VARCHAR(200) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`createAt` DATETIME NOT NULL DEFAULT (sysdate()),
+	PRIMARY KEY (`idRate`, `idCus`) USING BTREE,
+	UNIQUE INDEX `idRate` (`idRate`) USING BTREE,
+	INDEX `FK_rate_mc` (`idMC`) USING BTREE,
+	INDEX `FK_rate_customer` (`idCus`) USING BTREE,
+	CONSTRAINT `FK_rate_customer` FOREIGN KEY (`idCus`) REFERENCES `customer` (`idAcc`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `FK_rate_mc` FOREIGN KEY (`idMC`) REFERENCES `mc` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+#Bảng sale
+CREATE TABLE `sale` (
+	`idAcc` INT(10) NOT NULL,
+	`wage` INT(10) NULL DEFAULT NULL,
+	PRIMARY KEY (`idAcc`) USING BTREE,
+	UNIQUE INDEX `Index 2` (`idAcc`) USING BTREE,
+	CONSTRAINT `FK_sale_manager` FOREIGN KEY (`idAcc`) REFERENCES `manager` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+#Bảng sale_event
+CREATE TABLE `sale_event` (
+	`idScale` INT(10) NOT NULL,
+	`scale` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idScale`) USING BTREE,
+	UNIQUE INDEX `idScale` (`idScale`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+
+#Bảng scaleev_of_mc
+CREATE TABLE `scaleev_of_mc` (
+	`idScale` INT(10) NOT NULL,
+	`idMC` INT(10) NOT NULL,
+	PRIMARY KEY (`idScale`, `idMC`) USING BTREE,
+	INDEX `FK_scaleev_of_mc_mc` (`idMC`) USING BTREE,
+	CONSTRAINT `FK_scaleev_of_mc_mc` FOREIGN KEY (`idMC`) REFERENCES `mc` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE,
+	CONSTRAINT `FK_scaleev_of_mc_scale_event` FOREIGN KEY (`idScale`) REFERENCES `sale_event` (`idScale`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+# Bảng số điện thoại
+CREATE TABLE `sdt` (
+	`idAcc` INT(10) NOT NULL,
+	`SDT` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idAcc`, `SDT`) USING BTREE,
+	CONSTRAINT `FK_sdt_account` FOREIGN KEY (`idAcc`) REFERENCES `account` (`idAcc`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+# Bảng typeev_of_mc
+CREATE TABLE `typeev_of_mc` (
+	`idType` INT(10) NOT NULL,
+	`idMC` INT(10) NOT NULL,
+	PRIMARY KEY (`idType`, `idMC`) USING BTREE,
+	INDEX `FK_typeev_of_mc_mc` (`idMC`) USING BTREE,
+	CONSTRAINT `FK_typeev_of_mc_mc` FOREIGN KEY (`idMC`) REFERENCES `mc` (`idAcc`) ON UPDATE CASCADE ON DELETE NO ACTION,
+	CONSTRAINT `FK_typeev_of_mc_type_event` FOREIGN KEY (`idType`) REFERENCES `type_event` (`idType`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
+
+#Bảng type_event
+CREATE TABLE `type_event` (
+	`idType` INT(10) NOT NULL,
+	`type` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_general_ci',
+	PRIMARY KEY (`idType`) USING BTREE,
+	UNIQUE INDEX `idType` (`idType`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+;
+
