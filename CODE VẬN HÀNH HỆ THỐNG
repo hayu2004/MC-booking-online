@@ -1,1 +1,63 @@
+# Tìm MC được book nhiều nhất và số tiền tổng cộng tất cả các lần book của MC đó
+SELECT mc.idAcc,account.`name`,account.city,account.email,account.DOB,mc.experience,level_mc.`level`,A.countBook, A.money_earned_from_mc
+FROM MC, ACCOUNT, LEVEL_MC, (
+	SELECT idMC, COUNT(idMC) AS countBook, SUM(book.totalPrice) AS money_earned_from_mc
+	FROM calendar JOIN book ON book.idBook = calendar.idBook
+	WHERE calendar.idBook IS NOT NULL GROUP BY idMC HAVING COUNT(idMC) =
+	(SELECT MAX(countBook) FROM (SELECT COUNT(idMC) AS countBook FROM calendar WHERE idBook IS NOT NULL GROUP BY idMC) AS B)) AS A
+WHERE mc.idAcc = A.idMC
+AND mc.idAcc = account.idAcc
+AND level_mc.idLevel = mc.idLevel
 
+
+# Thống kê sale, số đơn sale đã chốt được và số tiền thu được 
+SELECT A.priceApprove, account.idAcc, account.`name`, account.email, account.DOB, account.zipcode, account.city, sale.wage, A.bookApprove, A.priceApprove
+FROM account, sale, (
+	SELECT idSale, COUNT(idSale) AS bookApprove, SUM(totalPrice) AS priceApprove FROM book GROUP BY idSale
+) AS A
+WHERE account.idAcc = sale.idAcc
+AND A.idSale = sale.idAcc
+
+
+# Lấy ra các MC có level là MC chuyên nghiệp và nói được tiếng Anh, tiếng Việt, có thể dẫn các chương trình sự kiện giải trí với khách mời dưới 500 người
+SELECT account.idAcc, account.`name`, account.email, account.DOB, account.city, mc.experience, level_mc.`level`
+FROM account, mc, level_mc
+WHERE account.idAcc = mc.idAcc
+AND mc.idLevel = level_mc.idLevel
+AND (SELECT COUNT(idLang) FROM (
+	SELECT * FROM lang_of_mc WHERE idMC = mc.idAcc AND (idLang = 1 OR idLang = 2)
+) AS A) = 2
+AND EXISTS(
+	SELECT * FROM scaleev_of_mc WHERE idMC = mc.idAcc AND idScale = 2
+)
+AND EXISTS(
+	SELECT * FROM typeev_of_mc WHERE idMC = account.idAcc AND idType = 2
+) 
+
+
+# Lấy ra đoạn chat giữa sale có id=2 customer có id=3 và thông tin của sale và customer đó
+SELECT chat.idChat, MAN.idAcc AS manId, MAN.name AS manName, MAN.email AS manEmail, chat.message,
+	chat.time, chat.isManSent, CUS.idAcc AS cusId, CUS.name AS cusName, CUS.email AS cusEmail
+FROM chat, (
+	SELECT account.idAcc, account.name, account.email FROM account, manager WHERE account.idAcc = manager.idAcc
+) AS MAN, (
+	SELECT account.idAcc, account.name, account.email FROM account, customer WHERE account.idAcc = customer.idAcc
+) AS CUS
+WHERE MAN.idAcc = chat.idMan
+AND CUS.idAcc = chat.idCus
+
+
+
+# Lấy ra các đơn đặt hàng và sự kiện, khách hàng tương ứng, có số lượng MC đặt trong đơn đặt hàng đó
+SELECT customer.idAcc, account.name, account.email, customer.paymentMethod,
+event.idEvent, event. name, event.place, sale_event.scale, type_event.type, event.timeStart, event.timeEnd,
+book.idBook, book.`status`, book.totalPrice, book.`create`, COUNTMC.numberMC
+FROM account, customer, event, book, sale_event, type_event, (
+	SELECT idBook, COUNT(idBook) AS numberMC FROM calendar WHERE idBook IS NOT NULL GROUP BY idBook
+) AS COUNTMC
+WHERE account.idAcc = customer.idAcc
+AND EVENT.idEvent = book.idEvent
+AND EVENT.idType = type_event.idType
+AND EVENT.idScale = sale_event.idScale
+AND COUNTMC.idBook = book.idBook
+AND EVENT.idCus= customer.idAcc
